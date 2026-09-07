@@ -101,7 +101,14 @@ export interface NativeCapabilities {
 export interface NativeEvent {
   id: string;
   kind: ChannelKey;
-  type: "data" | "status";
+  type: "data" | "status" | "overflow";
+  phase?: "connecting" | "open" | "closed" | "error";
+  rxBytes?: number;
+  txBytes?: number;
+  bytes?: number;
+  truncated?: boolean;
+  droppedBytes?: number;
+  localAddress?: string;
   direction?: Direction;
   payload?: string;
   format?: PayloadFormat;
@@ -110,10 +117,22 @@ export interface NativeEvent {
   message?: string;
   at: string;
 }
+export interface NativeConnection {
+  id: string;
+  kind: "serial" | "tcp" | "udp" | "mqtt";
+  phase: "connecting" | "open" | "closed" | "error";
+  message: string;
+  config: Record<string, unknown>;
+  rxBytes: number;
+  txBytes: number;
+  localAddress: string;
+}
 
 export interface DesktopAPI {
   capabilities: () => Promise<NativeCapabilities>;
   listSerialPorts: () => Promise<Array<Record<string, unknown>>>;
+  listConnections: () => Promise<NativeConnection[]>;
+  onConnectionEvents: (callback: (events: NativeEvent[]) => void) => () => void;
   openConnection: (request: {
     id: string;
     kind: ChannelKey;
